@@ -21,8 +21,9 @@ class TrainingDataGenerator:
                     square_size: int, 
                     square_color: Tuple[int, int, int],
                     background_color: Tuple[int, int, int], # (255, 255, 255) is white, (0, 0, 0) is black
-                    image_path: str
-                    ) -> None:
+                    image_path: str,
+                    inspect: bool = False
+                    ) -> np.ndarray:
         '''
         Draws a square on an image and saves it to a file.
         '''
@@ -37,8 +38,9 @@ class TrainingDataGenerator:
         bottom = top + square_size
         canvas_matrix[top:bottom, left:right] = square_color
 
-        image = Image.fromarray(canvas_matrix)
-        image.save(image_path)
+        if inspect:
+            image = Image.fromarray(canvas_matrix)
+            image.save(image_path)
 
         # Save parameters to class
         self.background_color = background_color
@@ -46,13 +48,16 @@ class TrainingDataGenerator:
         self.image_size = image_size
         self.square_size = square_size
 
+        return canvas_matrix
+
     def draw_triangle(self, 
                     image_size: Tuple[int, int],
                     triangle_size: Tuple[int, int],
                     triangle_color: Tuple[int, int, int],
                     background_color: Tuple[int, int, int], # (255, 255, 255) is white, (0, 0, 0) is black
-                    image_path: str
-                    ) -> None:
+                    image_path: str,
+                    inspect: bool = False
+                    ) -> np.ndarray:
         '''
         Draws a triangle on an image and saves it to a file.
         '''
@@ -82,14 +87,17 @@ class TrainingDataGenerator:
                 if b1 == b2 == b3:  # Point is inside the triangle
                     canvas_matrix[y, x] = triangle_color
 
-        image = Image.fromarray(canvas_matrix)
-        image.save(image_path)
+        if inspect:
+            image = Image.fromarray(canvas_matrix)
+            image.save(image_path)
 
         # Save parameters to class
         self.background_color = background_color
         self.triangle_color = triangle_color
         self.image_size = image_size
         self.triangle_size = triangle_size
+
+        return canvas_matrix
         
 def test():
     generator = TrainingDataGenerator()
@@ -106,8 +114,11 @@ def test():
     triangle_size = (20, 20)
     triangle_path = "triangle.png"
 
-    generator.draw_square(image_size, square_size, square_color, background_color, square_path)
-    generator.draw_triangle(image_size, triangle_size, triangle_color, background_color, triangle_path)
+    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=True)
+    triangle_matrix = generator.draw_triangle(image_size, triangle_size, triangle_color, background_color, triangle_path)
+
+    print(f"Square matrix: {square_matrix}")
+    print(f"Triangle matrix: {triangle_matrix}")
 
 if __name__ == "__main__":
     test()
