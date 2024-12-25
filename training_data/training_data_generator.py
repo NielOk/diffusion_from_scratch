@@ -98,8 +98,38 @@ class TrainingDataGenerator:
         self.triangle_size = triangle_size
 
         return canvas_matrix
+    
+    def forward_diffusion(self,
+                        x_0: np.ndarray,  # Initial state
+                        T: int,  # Number of time steps
+                        beta_schedule: np.ndarray,  # Schedule of beta values
+                        ) -> np.ndarray:
+        '''
+        Forward diffusion process for 8-bit RGB values.
+        '''
+        # Ensure x_0 is a float type for precision during calculations.
+        x_t = (x_0.astype(np.float32) / 127.5) - 1  # Scale to [-1, 1]
         
-def test():
+        for t in range(T):
+            beta_t = beta_schedule[t]
+            noise = np.random.normal(0, 1, size=x_t.shape)  # Generate noise with normal distribution
+            
+            # Add noise according to the diffusion process
+            x_t = np.sqrt(1 - beta_t) * x_t + np.sqrt(beta_t) * noise
+            
+            # Clip the values to stay within [0, 255] (for 8-bit image values)
+            x_t = np.clip(x_t, 0, 255)
+
+            if t % 5 == 0:
+                image = Image.fromarray(np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8))
+                image.save(f"diffused_{t}.png")
+
+        noisy_image = np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8)
+
+        # Convert back to 8-bit integers for the final output
+        return noisy_image
+        
+def test1():
     generator = TrainingDataGenerator()
     background_color = (255, 255, 255)
 
@@ -120,5 +150,25 @@ def test():
     print(f"Square matrix: {square_matrix}")
     print(f"Triangle matrix: {triangle_matrix}")
 
+def test2():
+    generator = TrainingDataGenerator()
+    background_color = (255, 255, 255)
+
+    # Draw square
+    square_color = (0, 0, 0)
+    image_size = (32, 32)
+    square_size = 10
+    square_path = "square.png"
+
+    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=True)
+
+    # Add diffusion process
+    T = 20
+    beta_schedule = np.linspace(0.0001, 0.2, T) # Linear schedule from 1e-4 to 0.2
+    x_t = generator.forward_diffusion(square_matrix, T, beta_schedule)
+    image = Image.fromarray(x_t)
+    image.save("diffused_square.png")
+
 if __name__ == "__main__":
-    test()
+    #test1()
+    test2()
