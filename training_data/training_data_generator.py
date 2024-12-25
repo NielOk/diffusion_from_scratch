@@ -99,7 +99,7 @@ class TrainingDataGenerator:
 
         return canvas_matrix
     
-    def forward_diffusion(self,
+    def beta_schedule_forward_diffusion(self,
                         x_0: np.ndarray,  # Initial state
                         T: int,  # Number of time steps
                         beta_schedule: np.ndarray,  # Schedule of beta values
@@ -118,8 +118,9 @@ class TrainingDataGenerator:
             x_t = np.sqrt(1 - beta_t) * x_t + np.sqrt(beta_t) * noise
             
             # Clip the values to stay within [0, 255] (for 8-bit image values)
-            x_t = np.clip(x_t, 0, 255)
+            x_t = np.clip(x_t, -1, 1)
 
+            # Check image at certain time steps
             if t % 5 == 0:
                 image = Image.fromarray(np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8))
                 image.save(f"diffused_{t}.png")
@@ -160,12 +161,12 @@ def test2():
     square_size = 10
     square_path = "square.png"
 
-    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=True)
+    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=False)
 
     # Add diffusion process
     T = 20
     beta_schedule = np.linspace(0.0001, 0.2, T) # Linear schedule from 1e-4 to 0.2
-    x_t = generator.forward_diffusion(square_matrix, T, beta_schedule)
+    x_t = generator.beta_schedule_forward_diffusion(square_matrix, T, beta_schedule)
     image = Image.fromarray(x_t)
     image.save("diffused_square.png")
 
