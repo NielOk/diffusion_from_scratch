@@ -4,7 +4,7 @@ This file contains a class that generates training data for the diffusion model.
 
 from PIL import Image
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Dict
 
 class TrainingDataGenerator:
 
@@ -103,12 +103,14 @@ class TrainingDataGenerator:
                         x_0: np.ndarray,  # Initial state
                         T: int,  # Number of time steps
                         beta_schedule: np.ndarray,  # Schedule of beta values
-                        ) -> np.ndarray:
+                        ) -> Dict[int, np.ndarray]: # Returns a dictionary of the noisy image at each time step, with the keys being the time steps from 0 (initial state) to T - 1
         '''
         Forward diffusion process for 8-bit RGB values.
         '''
         # Ensure x_0 is a float type for precision during calculations.
         x_t = (x_0.astype(np.float32) / 127.5) - 1  # Scale to [-1, 1]
+
+        noisy_steps = {}
         
         for t in range(T):
             beta_t = beta_schedule[t]
@@ -120,15 +122,27 @@ class TrainingDataGenerator:
             # Clip the values to stay within [0, 255] (for 8-bit image values)
             x_t = np.clip(x_t, -1, 1)
 
-            # Check image at certain time steps
-            if t % 5 == 0:
-                image = Image.fromarray(np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8))
-                image.save(f"diffused_{t}.png")
+            # Convert each step back to 8-bit RGB values
+            noisy_steps[t] = np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8)
 
-        noisy_image = np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8)
+        return noisy_steps
 
-        # Convert back to 8-bit integers for the final output
-        return noisy_image
+    def generate_training_data(self, 
+                            num_images: int,
+                            save_path: str,
+                            squares: bool = True,
+                            triangles: bool = True,
+                            forward_diffusion_method: str="beta_schedule",
+                            inspect: bool = False
+                            ):
+        '''
+        Generates training data for the diffusion model. Image size is 
+        32x32. Square size, color and triangle size, color is different 
+        for every image. Matrix values are saved to a json file. 
+        '''
+
+        pass
+                       
         
 def test1():
     generator = TrainingDataGenerator()
@@ -166,7 +180,7 @@ def test2():
     # Add diffusion process
     T = 20
     beta_schedule = np.linspace(0.0001, 0.2, T) # Linear schedule from 1e-4 to 0.2
-    x_t = generator.beta_schedule_forward_diffusion(square_matrix, T, beta_schedule)
+    x_t = generator.beta_schedule_forward_diffusion(square_matrix, T, beta_schedule)[19]
     image = Image.fromarray(x_t)
     image.save("diffused_square.png")
 
