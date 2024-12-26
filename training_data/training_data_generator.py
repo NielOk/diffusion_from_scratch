@@ -126,14 +126,16 @@ class TrainingDataGenerator:
             # Convert each step back to 8-bit RGB values
             noisy_step = np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8)
 
-            noisy_steps[t] = noisy_step.tolist() # Convert array to list for json saving. Will be converted back to numpy array when doing computations. 
+            noisy_step_list_data = noisy_step.tolist()
+
+            noisy_steps[t] = noisy_step_list_data # Convert array to list for json saving. Will be converted back to numpy array when doing computations. 
 
         return noisy_steps
 
     def generate_training_data(self, 
                             num_images: int,
                             save_path: str,
-                            T: int = 20, # Number of time steps
+                            T: int = 25, # Number of time steps
                             squares: bool = True,
                             triangles: bool = True,
                             background_color: Tuple[int, int, int] = (255, 255, 255), # Default background color for all images is white
@@ -158,8 +160,10 @@ class TrainingDataGenerator:
         elif triangles:
             num_triangles = num_images
         
-        training_data_dict = {} # Dictionary to store training data. Major keys are "squares" and "triangles". will try to use dictionaries because they are more efficient than lists. 
-
+        training_data_dict = { # Dictionary to store training data. Major keys are "squares" and "triangles". will try to use dictionaries because they are more efficient than lists.
+            "squares": {},
+            "triangles": {}
+        }
         # Get square possible dimensions
         square_max_length = np.minimum(image_size[0], image_size[1])
 
@@ -175,8 +179,8 @@ class TrainingDataGenerator:
                 image.save(f"square_{i}.png")
 
             if forward_diffusion_method == "beta_schedule":
-                noisy_steps = self.beta_schedule_forward_diffusion(square_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.02, T))
-                training_data_dict[f"square_{i}_steps"] = noisy_steps
+                noisy_steps = self.beta_schedule_forward_diffusion(square_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.2, T))
+                training_data_dict["squares"][f"square_{i}_steps"] = noisy_steps
             else:
                 raise ValueError("Invalid forward diffusion method")
             
@@ -196,8 +200,8 @@ class TrainingDataGenerator:
                 image.save(f"triangle_{i}.png")
 
             if forward_diffusion_method == "beta_schedule":
-                noisy_steps = self.beta_schedule_forward_diffusion(triangle_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.02, T))
-                training_data_dict[f"triangle_{i}_steps"] = noisy_steps
+                noisy_steps = self.beta_schedule_forward_diffusion(triangle_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.2, T))
+                training_data_dict["triangles"][f"triangle_{i}_steps"] = noisy_steps
             else:
                 raise ValueError("Invalid forward diffusion method")
             
@@ -205,55 +209,3 @@ class TrainingDataGenerator:
             json.dump(training_data_dict, f, indent=4)
 
         print(f"Generated {num_squares} squares and {num_triangles} triangles.")
-        
-def test1(): # Test draw_square and draw_triangle functions
-    generator = TrainingDataGenerator()
-    background_color = (255, 255, 255)
-
-    # Draw square
-    square_color = (0, 0, 0)
-    image_size = (32, 32)
-    square_size = 1
-    square_path = "square.png"
-
-    # Draw triangle
-    triangle_color = (0, 0, 0)
-    triangle_size = (6, 6)
-    triangle_path = "triangle.png"
-
-    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=False)
-    triangle_matrix = generator.draw_triangle(image_size, triangle_size, triangle_color, background_color, triangle_path, inspect=True)
-
-    print(f"Square matrix: {square_matrix}")
-    print(f"Triangle matrix: {triangle_matrix}")
-
-def test2(): # Test beta_schedule_forward_diffusion function
-    generator = TrainingDataGenerator()
-    background_color = (255, 255, 255)
-
-    # Draw square
-    square_color = (0, 0, 0)
-    image_size = (32, 32)
-    square_size = 10
-    square_path = "square.png"
-
-    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=False)
-
-    # Add diffusion process
-    T = 20
-    beta_schedule = np.linspace(0.0001, 0.2, T) # Linear schedule from 1e-4 to 0.2
-    x_t = generator.beta_schedule_forward_diffusion(square_matrix, T, beta_schedule)[19]
-    image = Image.fromarray(x_t)
-    image.save("diffused_square.png")
-
-def test3(): # Test generate_training_data function with beta schedule
-    generator = TrainingDataGenerator()
-    num_images = 1000
-    save_path = "training_data.json"
-
-    generator.generate_training_data(num_images, save_path, forward_diffusion_method="beta_schedule")
-
-if __name__ == "__main__":
-    #test1()
-    #test2()
-    test3()
