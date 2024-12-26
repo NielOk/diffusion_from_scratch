@@ -5,6 +5,7 @@ This file contains a class that generates training data for the diffusion model.
 from PIL import Image
 import numpy as np
 from typing import Tuple, Dict
+import json
 
 class TrainingDataGenerator:
 
@@ -21,7 +22,7 @@ class TrainingDataGenerator:
                     square_size: int, 
                     square_color: Tuple[int, int, int],
                     background_color: Tuple[int, int, int], # (255, 255, 255) is white, (0, 0, 0) is black
-                    image_path: str,
+                    image_path: str = "",
                     inspect: bool = False
                     ) -> np.ndarray:
         '''
@@ -38,7 +39,7 @@ class TrainingDataGenerator:
         bottom = top + square_size
         canvas_matrix[top:bottom, left:right] = square_color
 
-        if inspect:
+        if inspect and image_path != "":
             image = Image.fromarray(canvas_matrix)
             image.save(image_path)
 
@@ -55,7 +56,7 @@ class TrainingDataGenerator:
                     triangle_size: Tuple[int, int],
                     triangle_color: Tuple[int, int, int],
                     background_color: Tuple[int, int, int], # (255, 255, 255) is white, (0, 0, 0) is black
-                    image_path: str,
+                    image_path: str = "",
                     inspect: bool = False
                     ) -> np.ndarray:
         '''
@@ -87,7 +88,7 @@ class TrainingDataGenerator:
                 if b1 == b2 == b3:  # Point is inside the triangle
                     canvas_matrix[y, x] = triangle_color
 
-        if inspect:
+        if inspect and image_path != "":
             image = Image.fromarray(canvas_matrix)
             image.save(image_path)
 
@@ -123,15 +124,20 @@ class TrainingDataGenerator:
             x_t = np.clip(x_t, -1, 1)
 
             # Convert each step back to 8-bit RGB values
-            noisy_steps[t] = np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8)
+            noisy_step = np.clip((x_t + 1) * 127.5, 0, 255).astype(np.uint8)
+
+            noisy_steps[t] = noisy_step.tolist() # Convert array to list for json saving. Will be converted back to numpy array when doing computations. 
 
         return noisy_steps
 
     def generate_training_data(self, 
                             num_images: int,
                             save_path: str,
+                            T: int = 20, # Number of time steps
                             squares: bool = True,
                             triangles: bool = True,
+                            background_color: Tuple[int, int, int] = (255, 255, 255), # Default background color for all images is white
+                            image_size: Tuple[int, int] = (32, 32), # Default image size is 32x32
                             forward_diffusion_method: str="beta_schedule",
                             inspect: bool = False
                             ):
@@ -141,31 +147,87 @@ class TrainingDataGenerator:
         for every image. Matrix values are saved to a json file. 
         '''
 
-        pass
-                       
+        num_squares = 0
+        num_triangles = 0
+
+        if squares and triangles:
+            num_squares = num_images // 2
+            num_triangles = num_images - num_squares
+        elif squares:
+            num_squares = num_images
+        elif triangles:
+            num_triangles = num_images
         
-def test1():
+        training_data_dict = {} # Dictionary to store training data. Major keys are "squares" and "triangles". will try to use dictionaries because they are more efficient than lists. 
+
+        # Get square possible dimensions
+        square_max_length = np.minimum(image_size[0], image_size[1])
+
+        # Generate squares training data
+        for i in range(num_squares):
+            square_color = (np.random.randint(0, 256), np.random.randint(0, 256), np.random.randint(0, 256))
+            square_size = np.random.randint(1, square_max_length) # Give a buffer of 1 pixel for both miniumum and maximum size
+
+            square_matrix = self.draw_square(image_size, square_size, square_color, background_color)
+
+            if inspect and i % 100 == 0:
+                image = Image.fromarray(square_matrix)
+                image.save(f"square_{i}.png")
+
+            if forward_diffusion_method == "beta_schedule":
+                noisy_steps = self.beta_schedule_forward_diffusion(square_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.02, T))
+                training_data_dict[f"square_{i}_steps"] = noisy_steps
+            else:
+                raise ValueError("Invalid forward diffusion method")
+            
+        # Get triangle possible dimensions
+        triangle_min_base_or_height = 6
+        triangle_max_base = np.minimum(image_size[0], image_size[1])
+
+        # Generate triangles training data
+        for i in range(num_triangles):
+            triangle_color = (np.random.randint(0, 256), np.random.randint(0, 256), np.random.randint(0, 256))
+            triangle_size = (np.random.randint(triangle_min_base_or_height, triangle_max_base), np.random.randint(triangle_min_base_or_height, triangle_max_base))
+
+            triangle_matrix = self.draw_triangle(image_size, triangle_size, triangle_color, background_color)
+
+            if inspect and i % 100 == 0:
+                image = Image.fromarray(triangle_matrix)
+                image.save(f"triangle_{i}.png")
+
+            if forward_diffusion_method == "beta_schedule":
+                noisy_steps = self.beta_schedule_forward_diffusion(triangle_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.02, T))
+                training_data_dict[f"triangle_{i}_steps"] = noisy_steps
+            else:
+                raise ValueError("Invalid forward diffusion method")
+            
+        with open(save_path, "w") as f:
+            json.dump(training_data_dict, f, indent=4)
+
+        print(f"Generated {num_squares} squares and {num_triangles} triangles.")
+        
+def test1(): # Test draw_square and draw_triangle functions
     generator = TrainingDataGenerator()
     background_color = (255, 255, 255)
 
     # Draw square
     square_color = (0, 0, 0)
     image_size = (32, 32)
-    square_size = 10
+    square_size = 1
     square_path = "square.png"
 
     # Draw triangle
     triangle_color = (0, 0, 0)
-    triangle_size = (20, 20)
+    triangle_size = (6, 6)
     triangle_path = "triangle.png"
 
-    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=True)
-    triangle_matrix = generator.draw_triangle(image_size, triangle_size, triangle_color, background_color, triangle_path)
+    square_matrix = generator.draw_square(image_size, square_size, square_color, background_color, square_path, inspect=False)
+    triangle_matrix = generator.draw_triangle(image_size, triangle_size, triangle_color, background_color, triangle_path, inspect=True)
 
     print(f"Square matrix: {square_matrix}")
     print(f"Triangle matrix: {triangle_matrix}")
 
-def test2():
+def test2(): # Test beta_schedule_forward_diffusion function
     generator = TrainingDataGenerator()
     background_color = (255, 255, 255)
 
@@ -184,6 +246,14 @@ def test2():
     image = Image.fromarray(x_t)
     image.save("diffused_square.png")
 
+def test3(): # Test generate_training_data function with beta schedule
+    generator = TrainingDataGenerator()
+    num_images = 1000
+    save_path = "training_data.json"
+
+    generator.generate_training_data(num_images, save_path, forward_diffusion_method="beta_schedule")
+
 if __name__ == "__main__":
     #test1()
-    test2()
+    #test2()
+    test3()
