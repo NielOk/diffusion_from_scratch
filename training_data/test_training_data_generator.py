@@ -91,7 +91,7 @@ def test4(): # Test discretized_time_continuous_forward_diffusion function
 
     # Draw triangle
     triangle_color = (0, 0, 0)
-    triangle_size = (25, 25)
+    triangle_size = (30, 30)
     triangle_path = "triangle.png"
 
     triangle_matrix = generator.draw_triangle(image_size, triangle_size, triangle_color, background_color, triangle_path, inspect=False)

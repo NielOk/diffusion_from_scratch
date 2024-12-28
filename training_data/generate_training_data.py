@@ -1,5 +1,6 @@
 '''
-Script that uses training_data_generator to generate training data for the model and check images.
+Script that uses training_data_generator to generate training data for the model and check images. Must be edited manually
+to change parameters for training data generation. 
 '''
 
 import json
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     num_images = 1000
     save_path = "training_data.json"
 
-    generator.generate_training_data(num_images, save_path)
+    generator.generate_training_data(num_images, save_path, forward_diffusion_method="discretized_time_continuous")
 
     with open(save_path, 'r') as f:
         data = json.load(f)
