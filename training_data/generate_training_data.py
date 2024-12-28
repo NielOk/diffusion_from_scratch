@@ -14,7 +14,7 @@ def view_images(data):
     square_0_steps = data["squares"]["square_0_steps"]
     for step_id in square_0_steps:
         square_data = square_0_steps[step_id]
-        square_matrix = np.array(square_data, dtype=np.uint8)
+        square_matrix = np.array(square_data).astype(np.uint8)
         image = Image.fromarray(square_matrix)
         image.show()
 
@@ -22,7 +22,7 @@ def view_images(data):
     triangle_0_steps = data["triangles"]["triangle_0_steps"]
     for step_id in triangle_0_steps:
         triangle_data = triangle_0_steps[step_id]
-        triangle_matrix = np.array(triangle_data, dtype=np.uint8)
+        triangle_matrix = np.array(triangle_data).astype(np.uint8)
         image = Image.fromarray(triangle_matrix)
         image.show()
 

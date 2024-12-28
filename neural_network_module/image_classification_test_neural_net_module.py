@@ -6,6 +6,7 @@ import numpy as np
 import json
 import os
 from typing import Dict
+from PIL import Image
 
 from neural_network_module import NeuralNetwork
 
@@ -39,7 +40,8 @@ def load_classification_data(
             
             non_noisy_data = step_data["0"]
             non_noisy_matrix = np.array(non_noisy_data)
-            non_noisy_data_dict[shape][i] = non_noisy_matrix
+            image_array = non_noisy_matrix.astype(np.uint8)
+            non_noisy_data_dict[shape][i] = image_array
 
     return non_noisy_data_dict
 
@@ -48,4 +50,6 @@ if __name__ == '__main__':
     
     non_noisy_data_dict = load_classification_data(data_filename)
 
-    print(non_noisy_data_dict['squares'][0])
+    print(non_noisy_data_dict['squares'][16].shape)
+    image = Image.fromarray(non_noisy_data_dict['squares'][16])
+    image.show()
