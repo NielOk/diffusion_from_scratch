@@ -49,7 +49,3 @@ if __name__ == '__main__':
     data_filename = 'training_data.json'
     
     non_noisy_data_dict = load_classification_data(data_filename)
-
-    print(non_noisy_data_dict['squares'][16].shape)
-    image = Image.fromarray(non_noisy_data_dict['squares'][16])
-    image.show()
