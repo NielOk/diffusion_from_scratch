@@ -1,1 +1,1 @@
-Module built from scratch for flexible definition of neural networks.
+Module built from scratch for flexible definition of neural networks. This module is weight-centric, meaning in general, weights are treated as rows and inputs as columns.

@@ -9,7 +9,7 @@ class NeuralNetwork:
 
     def __init__(self) -> None: 
         self.layers = {} # dictionary to store information about the layers of the neural network, including activations, number of neurons, number of inputs, etc.
-        self.layer_weights = {} # dictionary to store the matrix weights for each layer. weights are stacked as rows for each layer.
+        self.layer_weights = {} # dictionary to store the tensor weights for each layer. weights are stacked as rows for each layer.
         self.layer_biases = {} # dictionary to store the vector biases for each layer
         
     def add_dense_layer(self,

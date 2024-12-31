@@ -20,15 +20,16 @@ def load_classification_data(
     
     '''
     Load image data from a diffusion training data json file.
-    Returns a dictionary such that there is a key for each shape,
-    and each shape key maps to a dictionary that contains a key
-    for each image, and each image key maps to a numpy array
+    Returns a list of image arrays and a list of labels.
     '''
     
     filepath = os.path.join(DATA_DIR, filename)
     
     with open(filepath, 'r') as f:
         data = json.load(f)
+
+    array_list = []
+    label_list = []
 
     non_noisy_data_dict = {'squares': {}, 'triangles': {}}
     for shape in data.keys():
@@ -43,9 +44,12 @@ def load_classification_data(
             image_array = non_noisy_matrix.astype(np.uint8)
             non_noisy_data_dict[shape][i] = image_array
 
-    return non_noisy_data_dict
+            array_list.append(image_array)
+            label_list.append(shape)
+
+    return array_list, label_list
 
 if __name__ == '__main__':
     data_filename = 'training_data.json'
     
-    non_noisy_data_dict = load_classification_data(data_filename)
+    array_list, label_list = load_classification_data(data_filename)
