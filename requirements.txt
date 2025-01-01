@@ -2,3 +2,4 @@ numpy
 pillow
 torch
 scikit-learn
+tqdm
