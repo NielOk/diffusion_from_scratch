@@ -5,7 +5,7 @@ Experiment simply using a multi-layer perceptron to classify images in the diffu
 import numpy as np
 import json
 import os
-from typing import Dict
+from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -76,18 +76,18 @@ class MLPBinaryClassifier(nn.Module):
         x = torch.relu(self.fc1(x))  # Pass through first layer + ReLU
         x = self.fc2(x)  # Output layer (logits for BCEWithLogitsLoss)
         return x
-
-# Main function for loading data, training the model, and evaluating on test data
-def main():
-    data_filename = 'training_data.json'
-
-    # Load the non-noisy image data from the diffusion dataset
+    
+def prepare_data(
+        data_filename: str,
+        ) -> Tuple[ImageDataset, ImageDataset]:
+    
     array_list, label_list = load_classification_data(data_filename)
 
-    # Convert the labels to integers
+    # Convert the labels to integers and create a label array
     label_list = [0.0 if label == 'squares' else 1.0 for label in label_list] # Basically, squares are 0 and triangles are 1
     label_array = np.array(label_list)
 
+    # Split the data into training and testing sets
     x_train, x_test, y_train, y_test = train_test_split(array_list, label_array, test_size=0.2, random_state=42)
 
     # Flatten image data and combine into single numpy arrays
@@ -105,6 +105,14 @@ def main():
     # Create data loader for batching and shuffling.
     train_dataset = ImageDataset(x_train_tensor, y_train_tensor)
     test_dataset = ImageDataset(x_test_tensor, y_test_tensor)
+
+    return train_dataset, test_dataset
+
+# Main function for loading data, training the model, and evaluating on test data
+def main():
+    data_filename = 'training_data.json'
+
+    train_dataset, test_dataset = prepare_data(data_filename)
 
     train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True) # Batch size of 16, shuffle the data for training
     test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False) # No need to shuffle the test data
