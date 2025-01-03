@@ -5,7 +5,8 @@ Test neural networks module with image classification task with non-noisy data.
 import numpy as np
 import json
 import os
-from typing import Dict
+from typing import Dict, Tuple
+from sklearn.model_selection import train_test_split
 from PIL import Image
 
 from neural_network_module import NeuralNetwork
@@ -49,7 +50,30 @@ def load_classification_data(
 
     return array_list, label_list
 
+def prepare_data(
+        data_filename: str, 
+        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+
+    '''
+    Prepare image data for training.
+    '''
+
+    array_list, label_list = load_classification_data(data_filename)
+
+    # Convert the labels to integers and create a label array
+    label_list = [0.0 if label == 'squares' else 1.0 for label in label_list] # Basically, squares are 0 and triangles are 1
+    label_array = np.array(label_list)
+
+    # Split the data into training and testing sets
+    x_train, x_test, y_train, y_test = train_test_split(array_list, label_array, test_size=0.2, random_state=42)
+
+    # Flatten image data and combine into single numpy arrays
+    x_train = np.stack(x_train).reshape(len(x_train), -1) / 255 # Normalize to [0, 1]
+    x_test = np.stack(x_test).reshape(len(x_test), -1) / 255 # Normalize to [0, 1]
+
+    return x_train, x_test, y_train, y_test
+
 if __name__ == '__main__':
     data_filename = 'training_data.json'
     
-    array_list, label_list = load_classification_data(data_filename)
+    x_train, x_test, y_train, y_test = prepare_data(data_filename)
