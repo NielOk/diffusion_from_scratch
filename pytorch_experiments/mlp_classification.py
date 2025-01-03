@@ -66,15 +66,17 @@ class ImageDataset(Dataset):
 
 # Define the MLP Model for Binary Classification
 class MLPBinaryClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_1_size, hidden_2_size):
         super(MLPBinaryClassifier, self).__init__()
         # Define layers
-        self.fc1 = nn.Linear(input_size, hidden_size)  # First fully connected layer
-        self.fc2 = nn.Linear(hidden_size, 1)  # Output layer with 1 unit
+        self.fc1 = nn.Linear(input_size, hidden_1_size)  # First fully connected layer
+        self.fc2 = nn.Linear(hidden_1_size, hidden_2_size)  # Second fully connected layer
+        self.fc3 = nn.Linear(hidden_2_size, 1)  # Output layer with 1 unit
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))  # Pass through first layer + ReLU
-        x = self.fc2(x)  # Output layer (logits for BCEWithLogitsLoss)
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)  # Output layer (logits for BCEWithLogitsLoss)
         return x
     
 def prepare_data(
@@ -119,8 +121,9 @@ def main():
 
     # Model, Loss, and Optimizer
     input_size = 32 * 32 * 3  # Flattened size of 32x32x3 image
-    hidden_size = 128  # Arbitrary hidden layer size
-    model = MLPBinaryClassifier(input_size, hidden_size)
+    hidden_1_size = 64  # Arbitrary hidden layer size
+    hidden_2_size = 32  # Arbitrary hidden layer size
+    model = MLPBinaryClassifier(input_size, hidden_1_size, hidden_2_size)
 
     # Loss and Optimizer
     criterion = nn.BCEWithLogitsLoss()  # Combines sigmoid activation and binary cross-entropy
