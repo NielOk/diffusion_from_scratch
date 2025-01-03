@@ -71,7 +71,7 @@ class NeuralNetwork:
             float: The binary cross-entropy loss.
         """
         loss = np.mean(
-            np.maximum(0, logits) - logits * targets + np.log(1 + np.exp(-np.abs(logits))) # np.maximum is used to prevent overflow
+            np.maximum(0, logits) - logits * targets + np.log(1 + np.exp(-np.abs(logits))) # numerical stability trick
         )
         return loss
             
