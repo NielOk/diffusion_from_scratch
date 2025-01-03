@@ -57,9 +57,25 @@ class NeuralNetwork:
             numpy.ndarray: The result of applying sigmoid activation.
         """
         return 1 / (1 + np.exp(-array))
+    
+    ### LOSS METHODS ###
+    def bce_with_logits_loss(self, logits: np.ndarray, targets: np.ndarray) -> float:
+        """
+        Computes Binary Cross-Entropy Loss with Logits.
+
+        Parameters:
+            logits (numpy.ndarray): Output predictions (logits) from the neural network before applying sigmoid.
+            targets (numpy.ndarray): Ground truth binary labels (0 or 1).
+
+        Returns:
+            float: The binary cross-entropy loss.
+        """
+        loss = np.mean(
+            np.maximum(0, logits) - logits * targets + np.log(1 + np.exp(-np.abs(logits))) # np.maximum is used to prevent overflow
+        )
+        return loss
             
     ### NEURAL NETWORK METHODS ###
-
     def forward_pass(self, 
                      data: np.ndarray # data to be passed through the network
                      ) -> np.ndarray:
@@ -81,6 +97,8 @@ class NeuralNetwork:
                     data = self.relu(data)
                 elif activation == "sigmoid":
                     data = self.sigmoid(data)
+                elif activation == "None":
+                    data = data
                 else:
                     raise ValueError("Activation function not supported.")
             else:
@@ -91,7 +109,7 @@ class NeuralNetwork:
     def add_dense_layer(self,
                         num_inputs: int, # length of input vector to the layer. inputs must be flattened before being passed to the layer in forward propagation.
                         num_neurons: int, # number of neurons in the layer, also the number of outputs
-                        activation: str = "relu", # activation function for the layer
+                        activation: str = "None", # activation function for the layer
                         ) -> None:
         '''
         Add a dense layer to the neural network.

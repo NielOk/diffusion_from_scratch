@@ -116,8 +116,9 @@ def main():
 
     train_dataset, test_dataset = prepare_data(data_filename)
 
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True) # Batch size of 16, shuffle the data for training
-    test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False) # No need to shuffle the test data
+    batch_size = 8
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) # Shuffle the data for training
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False) # No need to shuffle the test data
 
     # Model, Loss, and Optimizer
     input_size = 32 * 32 * 3  # Flattened size of 32x32x3 image
