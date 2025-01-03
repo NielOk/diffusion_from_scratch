@@ -28,8 +28,65 @@ class NeuralNetwork:
         # Use slicing to create batches
         batches = [data[i * batch_size:(i + 1) * batch_size] for i in range(num_batches)]
         return batches
+    
+    ### ACTIVATION METHODS ##
+    def relu(self,
+            array: np.ndarray
+            ) -> np.ndarray:
+        """
+        Applies the ReLU activation function element-wise to the input array.
+
+        Parameters:
+            array (numpy.ndarray): Input NumPy array.
+
+        Returns:
+            numpy.ndarray: The result of applying ReLU activation.
+        """
+        return np.maximum(0, array)
+    
+    def sigmoid(self,
+                array: np.ndarray
+                ) -> np.ndarray:
+        """
+        Applies the sigmoid activation function element-wise to the input array.
+
+        Parameters:
+            array (numpy.ndarray): Input NumPy array.
+
+        Returns:
+            numpy.ndarray: The result of applying sigmoid activation.
+        """
+        return 1 / (1 + np.exp(-array))
             
     ### NEURAL NETWORK METHODS ###
+
+    def forward_pass(self, 
+                     data: np.ndarray # data to be passed through the network
+                     ) -> np.ndarray:
+        '''
+        Forward pass of the neural network.
+        '''
+
+        # loop through the layers of the network
+        for i in range(len(self.layers)):
+            layer_dict = self.layers[i]
+            weights = self.layer_weights[i]
+
+            # Check the type of layer
+            if layer_dict["type"] == "dense": # dense layer case
+                biases = self.layer_biases[i]
+                data = np.dot(data, weights.T) + biases
+                activation = layer_dict["activation"]
+                if activation == "relu":
+                    data = self.relu(data)
+                elif activation == "sigmoid":
+                    data = self.sigmoid(data)
+                else:
+                    raise ValueError("Activation function not supported.")
+            else:
+                raise ValueError("Layer type not supported.")
+            
+        return data
         
     def add_dense_layer(self,
                         num_inputs: int, # length of input vector to the layer. inputs must be flattened before being passed to the layer in forward propagation.
