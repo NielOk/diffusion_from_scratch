@@ -73,7 +73,29 @@ def prepare_data(
 
     return x_train, x_test, y_train, y_test
 
+def neural_network_definition(
+        num_neural_network_inputs: int, # length of input vector to the neural network. inputs must be flattened before being passed to the layer in forward propagation.
+                              ) -> NeuralNetwork:
+    net = NeuralNetwork()
+    net.add_dense_layer(num_neural_network_inputs, 128, "relu")
+    net.add_dense_layer(128, 1, "sigmoid")
+
+    return net
+
 if __name__ == '__main__':
     data_filename = 'training_data.json'
     
     x_train, x_test, y_train, y_test = prepare_data(data_filename)
+
+    net = neural_network_definition(x_train.shape[1])
+
+    # Batch training data
+    batch_size = 8
+    x_train_batches = net.create_batches(x_train, batch_size)
+    y_train_batches = net.create_batches(y_train, batch_size)
+
+    # Forward pass a single batch of data
+    output_0 = net.forward_pass(x_train_batches[0])
+    print(output_0)
+    print(output_0.shape)
+    print(y_train_batches[0])

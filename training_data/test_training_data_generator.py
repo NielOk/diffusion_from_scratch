@@ -70,7 +70,7 @@ def test3(): # Test generate_training_data function with beta schedule
 
     generator.generate_training_data(num_images, save_path, forward_diffusion_method="beta_schedule")
 
-def test4(): # Test discretized_time_continuous_forward_diffusion function
+def test4(): # Test uniform_scaled_forward_diffusion function
     generator = TrainingDataGenerator()
     background_color = (255, 255, 255)
 
@@ -84,7 +84,7 @@ def test4(): # Test discretized_time_continuous_forward_diffusion function
 
     # Add diffusion process
     T = 30
-    x_t = generator.discretized_time_continuous_forward_diffusion(square_matrix, T)[T - 1]
+    x_t = generator.uniform_scaled_forward_diffusion(square_matrix, T)[T - 1]
     x_t_array = np.array(x_t, dtype=np.uint8)
     image = Image.fromarray(x_t_array)
     image.save("diffused_square.png")
@@ -98,7 +98,7 @@ def test4(): # Test discretized_time_continuous_forward_diffusion function
 
     # Add diffusion process
     T = 30
-    x_t = generator.discretized_time_continuous_forward_diffusion(triangle_matrix, T)[T - 1]
+    x_t = generator.uniform_scaled_forward_diffusion(triangle_matrix, T)[T - 1]
     x_t_array = np.array(x_t, dtype=np.uint8)
     image = Image.fromarray(x_t_array)
     image.save("diffused_triangle.png")

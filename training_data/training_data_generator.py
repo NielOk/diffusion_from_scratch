@@ -134,13 +134,13 @@ class TrainingDataGenerator:
 
         return noisy_steps
     
-    def discretized_time_continuous_forward_diffusion(self,
-                                                      x_0: np.ndarray, # Initial state,
-                                                      T: int, # Number of time steps
-                                                      ) -> Dict[int, list]: # Returns a dictionary of the noisy image at each time step, with the keys being the time steps from 0 (initial state) to T - 1
+    def uniform_scaled_forward_diffusion(self,
+                                         x_0: np.ndarray, # Initial state,
+                                         T: int, # Number of time steps
+                                         ) -> Dict[int, list]: # Returns a dictionary of the noisy image at each time step, with the keys being the time steps from 0 (initial state) to T - 1
         '''
         Forward diffusion process according to the 
-        discretized-time continuous diffusion process.
+        uniform scaled by 1/T diffusion process.
         '''
         # Ensure x_0 is a float type for precision during calculations.
         x_t = (x_0.astype(np.float32) / 127.5) - 1  # Scale to [-1, 1]
@@ -175,7 +175,7 @@ class TrainingDataGenerator:
                             triangles: bool = True,
                             background_color: Tuple[int, int, int] = (255, 255, 255), # Default background color for all images is white
                             image_size: Tuple[int, int] = (32, 32), # Default image size is 32x32
-                            forward_diffusion_method: str="beta_schedule", # other option is "discretized_time_continuous"
+                            forward_diffusion_method: str="beta_schedule", # other option is "uniform_scaled"
                             inspect: bool = False
                             ):
         '''
@@ -216,8 +216,8 @@ class TrainingDataGenerator:
             if forward_diffusion_method == "beta_schedule":
                 noisy_steps = self.beta_schedule_forward_diffusion(square_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.02, T - 1)) # Since 0th step is the initial state, we have T - 1 steps
                 training_data_dict["squares"][f"square_{i}_steps"] = noisy_steps
-            elif forward_diffusion_method == "discretized_time_continuous":
-                noisy_steps = self.discretized_time_continuous_forward_diffusion(square_matrix, T=T)
+            elif forward_diffusion_method == "uniform_scaled":
+                noisy_steps = self.uniform_scaled_forward_diffusion(square_matrix, T=T)
                 training_data_dict["squares"][f"square_{i}_steps"] = noisy_steps
             else:
                 raise ValueError("Invalid forward diffusion method")
@@ -240,8 +240,8 @@ class TrainingDataGenerator:
             if forward_diffusion_method == "beta_schedule":
                 noisy_steps = self.beta_schedule_forward_diffusion(triangle_matrix, T=T, beta_schedule=np.linspace(0.0001, 0.02, T - 1))
                 training_data_dict["triangles"][f"triangle_{i}_steps"] = noisy_steps
-            elif forward_diffusion_method == "discretized_time_continuous":
-                noisy_steps = self.discretized_time_continuous_forward_diffusion(triangle_matrix, T=T)
+            elif forward_diffusion_method == "uniform_scaled":
+                noisy_steps = self.uniform_scaled_forward_diffusion(triangle_matrix, T=T)
                 training_data_dict["triangles"][f"triangle_{i}_steps"] = noisy_steps
             else:
                 raise ValueError("Invalid forward diffusion method")

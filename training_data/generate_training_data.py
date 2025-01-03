@@ -31,7 +31,7 @@ if __name__ == '__main__':
     num_images = 1000
     save_path = "training_data.json"
 
-    generator.generate_training_data(num_images, save_path, forward_diffusion_method="discretized_time_continuous")
+    generator.generate_training_data(num_images, save_path, forward_diffusion_method="uniform_scaled")
 
     with open(save_path, 'r') as f:
         data = json.load(f)
