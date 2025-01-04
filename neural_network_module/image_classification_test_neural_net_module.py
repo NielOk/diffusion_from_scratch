@@ -78,7 +78,9 @@ def neural_network_definition(
                               ) -> NeuralNetwork:
     net = NeuralNetwork()
     net.add_dense_layer(num_neural_network_inputs, 128, "relu")
-    net.add_dense_layer(128, 1)
+    net.add_dense_layer(128, 64, "relu")
+    net.add_dense_layer(64, 32, "relu")
+    net.add_dense_layer(32, 1)
 
     return net
 
@@ -97,6 +99,14 @@ if __name__ == '__main__':
     # Forward pass a single batch of data
     output_0 = net.forward_pass(x_train_batches[0])
     loss_0 = net.bce_with_logits_loss(output_0, y_train_batches[0])
+
+    print(net.layer_biases[0])
+
+    # Backward pass a single batch of data
+    net.backward_pass(x_train_batches[0], y_train_batches[0], 0.01, "bce_with_logits_loss")
+
+    print(net.layer_biases[0])
+
     print(output_0)
     print(output_0.shape)
     print(y_train_batches[0])
