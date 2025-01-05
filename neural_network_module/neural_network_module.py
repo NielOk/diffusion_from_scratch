@@ -184,5 +184,10 @@ class NeuralNetwork:
         '''
 
         self.layers[len(self.layers)] = {"type": "dense","num_inputs": num_inputs, "num_outputs": num_neurons, "activation": activation}
-        self.layer_weights[len(self.layer_weights)] = np.random.randn(num_neurons, num_inputs) # initialize the weights for the layer to shape (num_neurons, num_inputs)
+        if activation == "relu":
+            self.layer_weights[len(self.layer_weights)] = np.random.randn(num_neurons, num_inputs) * np.sqrt(2 / num_inputs) # He initialization. Initialize the weights for the layer to shape (num_neurons, num_inputs)
+        elif activation == "None":
+            self.layer_weights[len(self.layer_weights)] = np.random.randn(num_neurons, num_inputs) * np.sqrt(1 / num_inputs) # Xavier initialization. Initialize the weights for the layer to shape (num_neurons, num_inputs)
+        else:
+            raise ValueError("Activation function not supported.")
         self.layer_biases[len(self.layer_biases)] = np.zeros((1, num_neurons)) # initialize the biases for the layer to shape (1, num_neurons)

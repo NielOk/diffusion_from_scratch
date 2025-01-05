@@ -84,6 +84,44 @@ def neural_network_definition(
 
     return net
 
+def train_network(
+        net: NeuralNetwork,
+        batch_size: int,
+        x_train: np.ndarray,
+        y_train: np.ndarray,
+        loss_function: str,
+        epochs: int,
+        learning_rate: float
+        ) -> None:
+    
+    '''
+    Train the neural network.
+    '''
+    
+    x_train_batches = net.create_batches(x_train, batch_size)
+    y_train_batches = net.create_batches(y_train, batch_size)
+
+    for epoch in range(epochs):
+        num_correct = 0
+        num_total = x_train.shape[0]
+        print(x_train.shape)
+
+        for i in range(len(x_train_batches)):
+            outputs = net.forward_pass(x_train_batches[i])
+            net.backward_pass(x_train_batches[i], y_train_batches[i], learning_rate, loss_function)
+
+            # Get the accuracy of the model on the training data
+            predictions = net.sigmoid(outputs).flatten()
+            predictions[predictions >= 0.5] = 1
+            predictions[predictions < 0.5] = 0
+
+            num_correct += np.sum(predictions == y_train_batches[i])
+
+        accuracy = num_correct / num_total
+        print(f"Epoch {epoch+1}: Accuracy = {accuracy}")
+
+    print("Training complete!")
+
 if __name__ == '__main__':
     data_filename = 'training_data.json'
     
@@ -93,21 +131,9 @@ if __name__ == '__main__':
 
     # Batch training data
     batch_size = 8
-    x_train_batches = net.create_batches(x_train, batch_size)
-    y_train_batches = net.create_batches(y_train, batch_size)
 
-    # Forward pass a single batch of data
-    output_0 = net.forward_pass(x_train_batches[0])
-    loss_0 = net.bce_with_logits_loss(output_0, y_train_batches[0])
-
-    print(net.layer_biases[0])
-
-    # Backward pass a single batch of data
-    net.backward_pass(x_train_batches[0], y_train_batches[0], 0.01, "bce_with_logits_loss")
-
-    print(net.layer_biases[0])
-
-    print(output_0)
-    print(output_0.shape)
-    print(y_train_batches[0])
-    print(loss_0)
+    # Train the network
+    loss_function = "bce_with_logits_loss"
+    epochs = 10
+    learning_rate = 0.001
+    train_network(net, batch_size, x_train, y_train, loss_function, epochs, learning_rate)
