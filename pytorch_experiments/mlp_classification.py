@@ -66,17 +66,19 @@ class ImageDataset(Dataset):
 
 # Define the MLP Model for Binary Classification
 class MLPBinaryClassifier(nn.Module):
-    def __init__(self, input_size, hidden_1_size, hidden_2_size):
+    def __init__(self, input_size, hidden_1_size, hidden_2_size, hidden_3_size):
         super(MLPBinaryClassifier, self).__init__()
         # Define layers
         self.fc1 = nn.Linear(input_size, hidden_1_size)  # First fully connected layer
         self.fc2 = nn.Linear(hidden_1_size, hidden_2_size)  # Second fully connected layer
-        self.fc3 = nn.Linear(hidden_2_size, 1)  # Output layer with 1 unit
+        self.fc3 = nn.Linear(hidden_2_size, hidden_3_size)  # Third fully connected layer
+        self.fc4 = nn.Linear(hidden_3_size, 1)  # Output layer with 1 unit
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))  # Pass through first layer + ReLU
         x = torch.relu(self.fc2(x))
-        x = self.fc3(x)  # Output layer (logits for BCEWithLogitsLoss)
+        x = torch.relu(self.fc3(x))
+        x = self.fc4(x)  # Output layer (logits for BCEWithLogitsLoss)
         return x
     
 def prepare_data(
@@ -116,19 +118,20 @@ def main():
 
     train_dataset, test_dataset = prepare_data(data_filename)
 
-    batch_size = 8
+    batch_size = 6
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) # Shuffle the data for training
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False) # No need to shuffle the test data
 
     # Model, Loss, and Optimizer
     input_size = 32 * 32 * 3  # Flattened size of 32x32x3 image
-    hidden_1_size = 64  # Arbitrary hidden layer size
-    hidden_2_size = 32  # Arbitrary hidden layer size
-    model = MLPBinaryClassifier(input_size, hidden_1_size, hidden_2_size)
+    hidden_1_size = 128  # Arbitrary hidden layer size
+    hidden_2_size = 64  # Arbitrary hidden layer size
+    hidden_3_size = 32  # Arbitrary hidden layer size
+    model = MLPBinaryClassifier(input_size, hidden_1_size, hidden_2_size, hidden_3_size)
 
     # Loss and Optimizer
     criterion = nn.BCEWithLogitsLoss()  # Combines sigmoid activation and binary cross-entropy
-    optimizer = optim.SGD(model.parameters(), lr=0.01)  # Stochastic Gradient Descent
+    optimizer = optim.SGD(model.parameters(), lr=0.0001)  # Stochastic Gradient Descent
 
     # Training Loop
     epochs = 10  # Number of epochs
