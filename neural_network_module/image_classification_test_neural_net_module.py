@@ -122,6 +122,21 @@ def train_network(
 
     print("Training complete!")
 
+def test_network(
+        net: NeuralNetwork, 
+        x_test: np.ndarray,
+        y_test: np.ndarray
+        ) -> None:
+    
+    outputs = net.forward_pass(x_test)
+    predictions = net.sigmoid(outputs).flatten()
+    predictions[predictions >= 0.5] = 1
+    predictions[predictions < 0.5] = 0
+
+    num_correct = np.sum(predictions == y_test)
+    accuracy = num_correct / len(y_test)
+    print(f"Test Accuracy = {accuracy}")
+
 if __name__ == '__main__':
     data_filename = 'training_data.json'
     
@@ -130,10 +145,13 @@ if __name__ == '__main__':
     net = neural_network_definition(x_train.shape[1])
 
     # Batch training data
-    batch_size = 8
+    batch_size = 6
 
     # Train the network
     loss_function = "bce_with_logits_loss"
-    epochs = 10
-    learning_rate = 0.001
+    epochs = 15
+    learning_rate = 0.0001
     train_network(net, batch_size, x_train, y_train, loss_function, epochs, learning_rate)
+
+    # Test the network
+    test_network(net, x_test, y_test)
