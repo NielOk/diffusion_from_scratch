@@ -1,6 +1,13 @@
 import numpy as np
+import os
+from typing import Dict
+import json
 
+PROJECT_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_DIR = os.path.dirname(PROJECT_BASE_DIR)
+DATA_DIR = os.path.join(REPO_DIR, "training_data")
 
+### Universal functions###
 def positional_encoding(t: int, # Current time step (scalar or array) 
                         d: int # Embedding dimension
                         ) -> np.ndarray:
@@ -15,11 +22,12 @@ def positional_encoding(t: int, # Current time step (scalar or array)
     pe[1::2] = np.cos(t * angle_rates)  # Odd indices
     return pe
 
-# Example usage
-time_step = 1
-embedding_dim = 128
-
-# Compute time embedding
-time_embedding = positional_encoding(time_step, embedding_dim)
-print(time_embedding)
-print(time_embedding.shape)
+def normalize_pe(pe: np.ndarray # Positional embedding
+                 ) -> np.ndarray:
+    """
+    Normalize positional embeddings to zero mean and unit variance.
+    Returns Normalized positional embedding.
+    """
+    mean = np.mean(pe)
+    std = np.std(pe)
+    return (pe - mean) / std

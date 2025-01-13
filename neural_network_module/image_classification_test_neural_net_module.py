@@ -32,7 +32,6 @@ def load_classification_data(
     array_list = []
     label_list = []
 
-    non_noisy_data_dict = {'squares': {}, 'triangles': {}}
     for shape in data.keys():
         shape_data = data[shape]
 
@@ -43,7 +42,6 @@ def load_classification_data(
             non_noisy_data = step_data["0"]
             non_noisy_matrix = np.array(non_noisy_data)
             image_array = non_noisy_matrix.astype(np.uint8)
-            non_noisy_data_dict[shape][i] = image_array
 
             array_list.append(image_array)
             label_list.append(shape)
